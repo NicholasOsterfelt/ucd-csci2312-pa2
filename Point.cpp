@@ -68,7 +68,7 @@ namespace Clustering {
     //Functions
     double Point::distanceTo(const Point &p) const {
         int size = p.getDims();
-        int sum;
+        int sum = 0;
 
         for (int n = 0; n < size; n++) {
             double diff = values[n] - p.values[n];
@@ -205,25 +205,32 @@ namespace Clustering {
     }
 
     std::ostream &operator<<(std::ostream &os, const Point &p) {
+        os << "(";
         for (int n = 0; n < p.getDims(); n++)
             if (n != p.getDims() - 1)
                 os << p.getValue(n+1) << ",";
             else
                 os << p.getValue(n+1);
+        os << ")";
         return os;
     }
     std::istream &operator>>(std::istream &is, Point &p)
     {
         string value;
         double dval;
-        while(!is.eof()) {
             for (int n = 0; n < p.getDims(); n++)
             {
-                getline(is,value,',');
-                dval = atof(value.c_str());
-                p.setValue(n+1, dval);
+                if(is.eof())
+                {
+                    p.setValue(n+1, 0);
+                }
+                if(getline(is,value,','))
+                {
+                    dval = atof(value.c_str());
+                    p.setValue(n+1, dval);
+                }
             }
-        }
+
         return is;
     }
 }
