@@ -1,13 +1,14 @@
 #ifndef CLUSTERING_CLUSTER_H
 #define CLUSTERING_CLUSTER_H
 
+#include <limits>
 #include "Point.h"
 
 namespace Clustering {
 
     typedef Point *PointPtr;
     typedef struct LNode *LNodePtr;
-
+    static const double MAX_VALUE = std::numeric_limits<double>::max();
 //    struct LNode;
 //    typedef LNode *LNodePtr;
 
@@ -17,27 +18,55 @@ namespace Clustering {
     };
 
     class Cluster {
+
+        unsigned int dims;
+        Point *_centroid;
+        int id = 0;
         int size;
         LNodePtr points;
-        int pdims = 2;
-        Point *centroid = new Point(pdims);
-        bool centroidValid = false;
+        bool _centroidValid;
 
 
     public:
-        Cluster() : size(0), points(nullptr), pdims(5) {};
-
+        class Move {
+            PointPtr p;
+            Cluster *f, *t;
+        public:
+            Move(const PointPtr &ptr, Cluster *from, Cluster *to) {
+                p = ptr;
+                f = from;
+                t = to;
+                perform();
+                from->setCentroidValid(false);
+                to->setCentroidValid(false);
+            }
+            void perform() {
+                t->add(f->remove(p));
+            }
+        };
+        Cluster(int);
         // The big three: cpy ctor, overloaded operator=, dtor
         Cluster(const Cluster &);
         Cluster &operator=(const Cluster &);
         ~Cluster();
         //accessor
+        int generateId();
         int getSize() const {return size;}
         LNodePtr getPoints() const {return points;}
-        int getDims() const {return pdims;}
-        Point getCentroid() const {return *centroid;}
-        bool getCValid() const {return centroidValid;}
+        int getDims() const {return dims;}
+        const Point getCentroid() const;
+        bool getCValid() const {return _centroidValid;}
+        int getId() const {return id;}
+
         // Set functions: They allow calling c1.add(c2.remove(p));
+        void setCentroid(const Point &);
+        void setCentroidValid(bool v){_centroidValid = v;}
+        void computeCentroid();
+        void pickPoints(int k, PointPtr *ptarray);
+        double intraClusterDistance();
+        int getClusterEdges();
+        friend double interClusterDistance(const Cluster &, const Cluster &);
+        friend double interClusterEdges(const Cluster &, const Cluster &);
         void add(const PointPtr &);
         const PointPtr &remove(const PointPtr &);
         void deleteAll();
@@ -66,6 +95,7 @@ namespace Clustering {
 
         friend const Cluster operator+(const Cluster &lhs, const PointPtr &rhs);
         friend const Cluster operator-(const Cluster &lhs, const PointPtr &rhs);
+
 
     };
 
