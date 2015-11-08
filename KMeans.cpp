@@ -10,9 +10,15 @@ using namespace std;
 namespace Clustering {
     KMeans:: KMeans(int ki, int d)
     {
-        double newscore, scoreDiff;
         k = ki;
+        double newscore, scoreDiff;
         clusters = new Clustering::ClusterPtr[k];
+        PointPtr *pickedPoints = new PointPtr[k];
+        for(int n =0; n < k; n++)
+        {
+            pickedPoints[n] = new Point(d);
+        }
+
         for(int n = 0; n < k; n++)
         {
             Cluster *newcluster = new Cluster(d);
@@ -24,7 +30,7 @@ namespace Clustering {
         istream & id = is;
         is >> *pointSpace;
         is.close();
-        PointPtr *pickedPoints = new PointPtr[k];
+
         clusters[0] = pointSpace;
         pointSpace->pickPoints(k, pickedPoints);
         for(int n = 0; n < k; n++)
@@ -33,14 +39,17 @@ namespace Clustering {
         }
         scoreDiff = SCORE_DIFF_THRESHHOLD+1;
 
-        while((scoreDiff < SCORE_DIFF_THRESHHOLD))
+        while(scoreDiff > SCORE_DIFF_THRESHHOLD)
         {
             for(int n = 0; n < k; n++)
             {
                 LNodePtr curr = clusters[n]->getPoints();
                 while(curr != nullptr)
                 {
-                    moveToClosestCluster(curr->p, *clusters[n]);
+                    if(moveToClosestCluster(curr->p, *clusters[n]))
+                    {
+                        curr = clusters[n]->getPoints();
+                    }
                     curr= curr->next;
                 }
             }
@@ -103,9 +112,13 @@ namespace Clustering {
             cout << *clusters[n] << endl;
         }
     }
-    void KMeans::moveToClosestCluster(const PointPtr p, Cluster & c) {
+    bool KMeans::moveToClosestCluster(const PointPtr p, Cluster & c) {
         int smallestIndex;
         double temp = p->distanceTo(c.getCentroid());
+        if(temp == 0)
+        {
+            return false;
+        }
         for(int n = 0; n < k; n++)
         {
             if(temp > p->distanceTo(clusters[n]->getCentroid()))
@@ -116,12 +129,11 @@ namespace Clustering {
         }
         if(temp == p->distanceTo(c.getCentroid()))
         {
-            return;
+            return false;
         }
-        else
-        {
+
             Cluster:: Move m(p,&c,clusters[smallestIndex]);
-        }
+            return true;
 
     }
     void KMeans::displayCentroids()
@@ -144,7 +156,7 @@ namespace Clustering {
     }
     void KMeans::perform()
     {
-        cout << "These are the KMeans Clusters with " << k << "clusters:" << endl;
+        cout << "These are the KMeans Clusters with " << k << " clusters:" << endl;
         cout << "Clustering Score: " << clusterScore << endl;
         for(int n = 0; n < k; n++)
         {
