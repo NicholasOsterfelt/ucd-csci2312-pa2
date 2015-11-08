@@ -14,7 +14,7 @@ namespace Clustering{
         double clusterScore;
         Clustering::ClusterPtr *clusters;
         Clustering::Cluster *pointSpace;
-        void moveToClosestCluster(const PointPtr p, Cluster &);
+        bool moveToClosestCluster(const PointPtr p, Cluster &);
     public:
         KMeans(int, int);
         ~KMeans();
