@@ -334,23 +334,56 @@ namespace Clustering {
     }
 
     void Cluster::pickPoints(int k, PointPtr *ptarray) {
-        double size = getSize();
-        int subSetIndex[k];
-        int subSetCount = 0;
-        for (int n = 0; n < k; n++) {
-            subSetIndex[n] = (int) ((size / (double) k) * double(n + 1));
-        }
-        for (int n = 0; n < k; n++) {
+        int size = getSize();
+        if(k > size)
+        {
+            Point *p = new Point(dims);
             LNodePtr curr = points;
-            for (int i = 0; i < subSetIndex[subSetCount]; i++) {
-                if (curr->next != nullptr) {
+            for(int n = 0; n < k; n ++)
+            {
+                if(curr->next == nullptr)
+                {
+                    *p = *curr->p;
+                    ptarray[n] = p;
+                }
+                else
+                {
+                    *p = *curr->p;
+                    ptarray[n] = p;
                     curr = curr->next;
                 }
             }
-            Point *p = new Point(dims);
-            *p = *curr->p;
-            ptarray[n] = p;
-            subSetCount++;
+        }
+        else {
+            LNodePtr curr = points;
+            int frontCount = k / 2;
+
+            int backCount = size - (k/2);
+            if(k%2 != 0)
+            {
+                backCount--;
+            }
+            int count = 0;
+            for (int n = 0; n < frontCount; n++) {
+                Point *p = new Point(dims);
+                *p = *curr->p;
+                ptarray[count] = p;
+                curr = curr->next;
+                count++;
+            }
+            curr = points;
+            for (int n = 0; n < backCount; n++)
+            {
+                curr = curr->next;
+            }
+            while(curr != nullptr)
+            {
+                Point *p = new Point(dims);
+                *p = *curr->p;
+                ptarray[count] = p;
+                curr = curr ->next;
+                count++;
+            }
         }
     }
     double Cluster::intraClusterDistance() {
