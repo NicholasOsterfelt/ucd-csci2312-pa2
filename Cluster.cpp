@@ -337,17 +337,18 @@ namespace Clustering {
         int size = getSize();
         if(k > size)
         {
-            Point *p = new Point(dims);
             LNodePtr curr = points;
-            for(int n = 0; n < k; n ++)
+            for(int n = 0; n < k; n++)
             {
                 if(curr->next == nullptr)
                 {
+                    Point *p = new Point(dims);
                     *p = *curr->p;
                     ptarray[n] = p;
                 }
                 else
                 {
+                    Point *p = new Point(dims);
                     *p = *curr->p;
                     ptarray[n] = p;
                     curr = curr->next;
