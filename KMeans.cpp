@@ -1,63 +1,77 @@
 //
 // Created by Nick
 // on 10/25/2015.
-#include "KMeans.h"
 #include "fstream"
 #include "cmath"
+#include <vector>
 
+#include "KMeans.h"
 
 using namespace std;
 namespace Clustering {
-    KMeans:: KMeans(int ki, int d)
+    KMeans:: KMeans(unsigned int ki, unsigned int d)
     {
         k = ki;
         double newscore, scoreDiff;
-        clusters = new Clustering::ClusterPtr[k];
-        PointPtr *pickedPoints = new PointPtr[k];
-        for(int n =0; n < k; n++)
-        {
-            pickedPoints[n] = new Point(d);
-        }
-
-        for(int n = 0; n < k; n++)
-        {
-            Cluster *newcluster = new Cluster(d);
-            clusters[n] = newcluster;
-        }
+        clusters = new vector<Cluster>(k-1, Cluster(d));
+        vector<PointPtr> *pickedPoints = new vector<PointPtr>;
+//        for(int n =0; n < k; n++)
+//        {
+//            pickedPoints[n] = new Point(d);
+//        }
+//        for(int n = 0; n < k-1; n++)
+//        {
+//            Cluster *newcluster = new Cluster(d);
+//            clusters->push_back(*newcluster);
+//        }
         pointSpace = new Cluster(d);
         ifstream is;
         is.open("input.txt");
         istream & id = is;
-        is >> *pointSpace;
+        try
+        {
+            is >> *pointSpace;
+        }
+        catch(DimensionalityMismatchEx &e)
+        {
+            if(e.getPassedDims() == -1)
+            {
+                cerr << e << "(possible loss of data)" << endl;
+            }
+            else
+            {
+                cerr << e << "(insuficient dimensionality per line)" << endl;
+            }
+        }
+
         is.close();
 
-        clusters[0] = pointSpace;
-        pointSpace->pickPoints(k, pickedPoints);
+        clusters->push_back(*pointSpace);
+        pointSpace->pickPoints(k, *pickedPoints);
         for(int n = 0; n < k; n++)
         {
-                clusters[n]->setCentroid(*pickedPoints[n]);
+            (*clusters)[n].setCentroid(*(*pickedPoints)[n]);
         }
         scoreDiff = SCORE_DIFF_THRESHHOLD+1;
-
         while(scoreDiff > SCORE_DIFF_THRESHHOLD)
         {
             for(int n = 0; n < k; n++)
             {
-                LNodePtr curr = clusters[n]->getPoints();
-                while(curr != nullptr)
+                auto curr = (*clusters)[n].getPoints().begin();
+                while(curr != (*clusters)[n].getPoints().end())
                 {
-                    if(moveToClosestCluster(curr->p, *clusters[n]))
+                    if(moveToClosestCluster(*curr, (*clusters)[n]))
                     {
-                        curr = clusters[n]->getPoints();
+                        curr = (*clusters)[n].getPoints().begin();
                     }
-                    curr= curr->next;
+                    curr++;
                 }
             }
             for(int n =0; n < k; n++)
             {
-                if(!clusters[n]->getCValid())
+                if(!(*clusters)[n].getCValid())
                 {
-                    clusters[n]->computeCentroid();
+                    (*clusters)[n].computeCentroid();
                 }
             }
             newscore = computeClusteringScore();
@@ -77,24 +91,24 @@ namespace Clustering {
         double pout = 0;
         for(int n = 0; n < k; n++)
         {
-            din += clusters[n]->intraClusterDistance();
+            din += (*clusters)[n].intraClusterDistance();
         }
         for(int n = 0; n < k; n++)
         {
             for(int i = 0; i < k; i++)
             {
-                dout += interClusterDistance(*clusters[n], *clusters[i]);
+                dout += interClusterDistance((*clusters)[n], (*clusters)[i]);
             }
         }
         for(int n = 0; n < k; n++)
         {
-            pin += clusters[n]->getClusterEdges();
+            pin += (*clusters)[n].getClusterEdges();
         }
         for(int n = 0; n < k-1; n++)
         {
             for(int i = n+1; i < k; i++)
             {
-                pout = interClusterEdges(*clusters[n],*clusters[i]);
+                pout = interClusterEdges((*clusters)[n],(*clusters)[i]);
             }
         }
         score = (din*pout)/(dout*pin);
@@ -102,37 +116,38 @@ namespace Clustering {
     }
     KMeans::~KMeans()
     {
-        delete [] clusters;
+        delete clusters;
+        delete pointSpace;
     }
     void KMeans:: displayClusters() {
         cout << "These are the KMeans clusters" << endl;
         for(int n = 0; n < k; n++)
         {
 
-            cout << *clusters[n] << endl;
+            cout << (*clusters)[n] << endl;
         }
     }
-    bool KMeans::moveToClosestCluster(const PointPtr p, Cluster & c) {
+    bool KMeans::moveToClosestCluster(const Point p, Cluster & c) {
         int smallestIndex;
-        double temp = p->distanceTo(c.getCentroid());
+        double temp = p.distanceTo(c.getCentroid());
         if(temp == 0)
         {
             return false;
         }
         for(int n = 0; n < k; n++)
         {
-            if(temp > p->distanceTo(clusters[n]->getCentroid()))
+            if(temp > p.distanceTo((*clusters)[n].getCentroid()))
             {
-                temp = p->distanceTo(clusters[n]->getCentroid());
+                temp = p.distanceTo((*clusters)[n].getCentroid());
                 smallestIndex = n;
             }
         }
-        if(temp == p->distanceTo(c.getCentroid()))
+        if(temp == p.distanceTo(c.getCentroid()))
         {
             return false;
         }
 
-            Cluster:: Move m(p,&c,clusters[smallestIndex]);
+            Cluster:: Move m(p,&c,&(*clusters)[smallestIndex]);
             return true;
 
     }
@@ -141,7 +156,7 @@ namespace Clustering {
         cout << "These are the KMeans Centroids:" << endl;
         for(int n =0; n < k; n++)
         {
-            cout << clusters[n]->getCentroid();
+            cout << (*clusters)[n].getCentroid();
         }
     }
     void KMeans::outputToFile()
@@ -150,7 +165,7 @@ namespace Clustering {
         myfile.open("ouput.txt");
         for(int n = 0; n < k; n++)
         {
-            myfile << *clusters[n] << std::endl;
+            myfile << (*clusters)[n] << std::endl;
         }
         myfile.close();
     }
@@ -160,12 +175,12 @@ namespace Clustering {
         cout << "Clustering Score: " << clusterScore << endl;
         for(int n = 0; n < k; n++)
         {
-            cout << *clusters[n] << endl;
+            cout << (*clusters)[n] << endl;
         }
         cout << "KMeans Centroids: " << endl;
         for(int n = 0; n < k; n++)
         {
-            cout << clusters[n]->getCentroid() << endl;
+            cout << (*clusters)[n].getCentroid() << endl;
         }
     }
 }
