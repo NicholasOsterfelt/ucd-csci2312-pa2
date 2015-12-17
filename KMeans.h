@@ -3,6 +3,8 @@
 //
 #ifndef PA2_KMEANS_H
 #define PA2_KMEANS_H
+#include <vector>
+
 #include "Point.h"
 #include "Cluster.h"
 
@@ -12,17 +14,18 @@ namespace Clustering{
     class KMeans {
         unsigned int k;
         double clusterScore;
-        Clustering::ClusterPtr *clusters;
+        std::vector<Clustering::Cluster> *clusters;
         Clustering::Cluster *pointSpace;
-        bool moveToClosestCluster(const PointPtr p, Cluster &);
+
     public:
-        KMeans(int, int);
+        KMeans(unsigned int,unsigned int);
         ~KMeans();
         double computeClusteringScore();
         void displayClusters();
         void displayCentroids();
         void outputToFile();
         void perform();
+        bool moveToClosestCluster(const Clustering::Point p, Cluster &);
     };
 }
 #endif //PA2_KMEANS_H
