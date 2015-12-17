@@ -1,9 +1,11 @@
 #include <iostream>
-#include "Point.h"
-#include "Cluster.h"
 #include <assert.h>
 #include <fstream>
+
+#include "Point.h"
+#include "Cluster.h"
 #include "KMeans.h"
+#include "Exceptions.h"
 using namespace std;
 using namespace Clustering;
         //function Prototypes
@@ -33,7 +35,6 @@ void pTestOstreamOperator();
 
 int main() {
 //    pTestConstructor1();
-//    pTestConstructor2();
 //    pTestCopyConstructor();
 //    pTestAssignmentOperator();
 //    pTestGetDims();
@@ -55,46 +56,54 @@ int main() {
 //    pTestCLessEqualOperator();
 //    pTestCGreaterEqualOperator();
 //    pTestOstreamOperator();
-//     Cluster c1 = Cluster(3);
-//     Cluster c2 = Cluster(3);
-// //    Cluster *cone = &c1;
-// //    Cluster *ctwo = &c2;
-//     Point *p1 = new Point(5);
+    Cluster c1 = Cluster(3);
+//    Cluster *cone = &c1;
+//    Cluster *ctwo = &c2;
+//    cout << "this is c1 " << c1;
 //    Point *p2 = new Point(3);
 //    Point *p3 = new Point(3);
 //    Point *p4 = new Point(3);
 //    Point *p5 = new Point(3);
 //    Point *p6 = new Point(3);
-//    p1->setValue(1,1);
-//    p2->setValue(1,2);
-//    p3->setValue(1,3);
-//    p4->setValue(1,4);
-//    p5->setValue(1,5);
+    Point p1(3);
+//    p1.setValue(1,1);
+////    p4->setValue(1,4);
+////    p5->setValue(1,5);
 //    p6->setValue(1,6);
-//    c2.add(p6);
-//    c2.add(p5);
-//    c2.add(p4);
-//    c1.add(p1);
+////    c2.add(p6);
+////    c2.add(p5);
+////    c2.add(p4);
+////    c1.add(p1);
 //    c1.add(p2);
 //    c1.add(p3);
+//    *p2 = *p3;
+//    Point p7(*p1);
+//    cout << p1->getId() << endl;
+//    Cluster c3(c1);
+//
+//    cout << p6->getId() << endl;
 //    cout << "this is c1" << endl << c1 << endl;
+    Point p(3);
+    p.setValue(0,1);
+    p.setValue(1,2);
+    p.setValue(2,3);
+//    c1.generatePoints(5);
+//    c2.generatePoints(5);
+    c1.add(p);
+   Cluster c2(c1);
+    cout << "this is c1" << endl << c1 << endl;
+
 //    cout << "this is c2" << endl << c2 << endl;
 //    c2.add(c1.remove(p1));
-//    Cluster::Move m(p1,cone, ctwo);
+//    Cluster::Move m(p1,con
+
 //    ifstream is;
 //    is.open("input.txt");
-//    string line;
 //    istream & id = is;
-//
 //    is >> c1;
 //    cout << "this is c1" << endl << c1 << endl;
-
-    KMeans k(2,3);
-    KMeans k1(6,4);
-    KMeans k2(3,5);
-//     double p = k.computeClusteringScore();
-//     cout << p;
-
+    KMeans k(3,3);
+    KMeans k1(5,4);
 //    c1.computeCentroid();
 //
 //
@@ -130,14 +139,6 @@ void pTestConstructor1() {
     Point p(2);
     assert(p.getDims() == 2);
     assert(p.getValue(1) == 0 && p.getValue(2) == 0);
-}
-void pTestConstructor2() {
-    double values[] = {1,2,3,4,5};
-    double *pValues = values;
-    Point p1(3,pValues);
-
-    assert(p1.getDims() == 3);
-    assert(p1.getValue(1) == 1 && p1.getValue(2) == 2 && p1.getValue(3) == 3);
 }
 void pTestCopyConstructor() {
     Point p(3);
