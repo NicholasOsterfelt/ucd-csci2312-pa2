@@ -1,17 +1,18 @@
 #ifndef CLUSTERING_POINT_H
 #define CLUSTERING_POINT_H
-
+#include <vector>
 #include <iostream>
+#include <bits/stl_vector.h>
 
+#include "Exceptions.h"
 namespace Clustering {
-
     class Point {
+        unsigned int _id;
         int dim;        // number of dimensions of the point
-        double *values; // values of the point's dimensions
-
+        std::vector<double> *values; // values of the point's dimensions
+        static unsigned int _generateId;
     public:
         Point(int);
-        Point(int, double *);
 
         // Big three: cpy ctor, overloaded operator=, dtor
         Point(const Point &);
@@ -22,7 +23,8 @@ namespace Clustering {
         int getDims() const { return dim; }
         void setValue(int, double);
         double getValue(int) const;
-
+        unsigned int getId() const {return _id;}
+        static void rewindId(){_generateId--;}
         // Functions
         double distanceTo(const Point &) const;
 
@@ -34,7 +36,7 @@ namespace Clustering {
         const Point operator*(double) const; // prevent (p1*2) = p2;
         const Point operator/(double) const;
 
-        double &operator[](int index) { return values[index - 1]; } // TODO out-of-bds?     //
+        double &operator[](int index);
 
         // Friends
         friend Point &operator+=(Point &, const Point &);
