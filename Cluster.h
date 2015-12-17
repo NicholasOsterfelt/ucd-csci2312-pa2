@@ -2,6 +2,8 @@
 #define CLUSTERING_CLUSTER_H
 
 #include <limits>
+#include <forward_list>
+
 #include "Point.h"
 
 namespace Clustering {
@@ -21,19 +23,20 @@ namespace Clustering {
 
         unsigned int dims;
         Point *_centroid;
-        int id = 0;
+        int id;
         int size;
-        LNodePtr points;
+        std::forward_list <Point> *points;
         bool _centroidValid;
-
+        static unsigned int _generateId;
 
     public:
         class Move {
             PointPtr p;
             Cluster *f, *t;
         public:
-            Move(const PointPtr &ptr, Cluster *from, Cluster *to) {
-                p = ptr;
+            Move(const Point &pt, Cluster *from, Cluster *to) {
+                p = new Point(from->getDims());
+                *p = pt;
                 f = from;
                 t = to;
                 perform();
@@ -41,36 +44,38 @@ namespace Clustering {
                 to->setCentroidValid(false);
             }
             void perform() {
-                t->add(f->remove(p));
+                t->add(*p);
+                f->remove(*p);
             }
         };
-        Cluster(int);
+        Cluster(unsigned int);
         // The big three: cpy ctor, overloaded operator=, dtor
         Cluster(const Cluster &);
         Cluster &operator=(const Cluster &);
         ~Cluster();
         //accessor
-        int generateId();
+
         int getSize() const {return size;}
-        LNodePtr getPoints() const {return points;}
-        int getDims() const {return dims;}
+        forward_list<Point> &getPoints() const {return *points;}
+        unsigned int getDims() const {return dims;}
         const Point getCentroid() const;
         bool getCValid() const {return _centroidValid;}
         int getId() const {return id;}
-
+        void generatePoints(int);
         // Set functions: They allow calling c1.add(c2.remove(p));
         void setCentroid(const Point &);
         void setCentroidValid(bool v){_centroidValid = v;}
         void computeCentroid();
-        void pickPoints(int k, PointPtr *ptarray);
+        void pickPoints(int k, std::vector<Clustering::Point*> &);
         double intraClusterDistance();
         int getClusterEdges();
         friend double interClusterDistance(const Cluster &, const Cluster &);
         friend double interClusterEdges(const Cluster &, const Cluster &);
-        void add(const PointPtr &);
-        const PointPtr &remove(const PointPtr &);
+        void add(const Point &);
+        const Point &remove(const Point &);
         void deleteAll();
-
+        Point &operator[](int index);
+        bool contains(const Point &);
         // Overloaded operators
 
         // IO
@@ -93,8 +98,8 @@ namespace Clustering {
         friend const Cluster operator+(const Cluster &lhs, const Cluster &rhs);
         friend const Cluster operator-(const Cluster &lhs, const Cluster &rhs);
 
-        friend const Cluster operator+(const Cluster &lhs, const PointPtr &rhs);
-        friend const Cluster operator-(const Cluster &lhs, const PointPtr &rhs);
+        friend const Cluster operator+(const Cluster &lhs, const Point &rhs);
+        friend const Cluster operator-(const Cluster &lhs, const Point &rhs);
 
 
     };
